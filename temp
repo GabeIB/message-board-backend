@@ -1,0 +1,28 @@
+package main
+
+import (
+	"fmt"
+	"log"
+	"github.com/gorilla/mux"
+	"github.com/database/sql"
+
+	_ "github.com/mattn/go-sqlite3"
+)
+
+func home(w http.ResponseWriter, r *http.Request){
+	fmt.Fprintf(w, "hello world")
+}
+
+func admin(w http.ResponseWriter, r *http.Request){
+	fmt.Fprintf(w, "admin page")
+}
+
+func handleRequests() {
+	fmt.Println("starting server...")
+	http.HandleFunc("/admin/", admin)
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+
+func main() {
+	handleRequests()
+}
