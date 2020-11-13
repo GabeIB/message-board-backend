@@ -3,7 +3,6 @@
 package main
 
 import (
-	"fmt"
     "database/sql"
     "time"
 )
@@ -15,12 +14,6 @@ type message struct {
     Email string `json:"email"`
     Text string `json:"text"`
     TimeStamp time.Time `json:"creation_time"`
-}
-
-func convertTime(timeString string) (time.Time, error) {
-	layout := "2006-1-2T15:04:05-07:00" //layout as defined by sample CSV file
-	t, err := time.Parse(layout, timeString)
-	return t, err
 }
 
 //getMessage looks up a message by ID in the database and returns it.
@@ -36,45 +29,6 @@ func (m *message) updateMessage(db *sql.DB) error {
 			m.Name, m.Email, m.Text, m.ID)
 
 	return err
-}
-
-//loadDataFromCSV loads the specified filepath into the database.
-//I could have done this in SQL with COPY FROM, but wanted to have more control over the inputs.
-func loadDataFromCSV(fileName string, db *sql.DB) error {
-	query := fmt.Sprintf("COPY messages from '%s' DELIMITERS ',' CSV HEADER;", fileName)
-	_, err := db.Exec(query)
-	return err
-	/*
-	csvfile, err := os.Open(fileName)
-	if err != nil {
-		log.Fatal("Could not open csv file")
-	}
-	defer csvfile.Close()
-	r := csv.NewReader(csvfile)
-	//throw away first line of csv
-	if _, err := r.Read(); err != nil{
-		log.Fatal(err)
-	}
-	for {
-		record, err := r.Read()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			log.Fatal(err)
-		}
-		id := record[0]
-		name := record[1]
-		email := record[2]
-		text := record[3]
-		creation_time := record[4]
-		query := fmt.Sprintf("INSERT INTO messages(id, name, email, text, creation_time) VALUES('%s', '%s', '%s', '%s', '%s');", id, name, email, text, creation_time)
-		fmt.Println(query)
-		if _, err := db.Exec(query); err != nil {
-			return err
-		}
-	}
-	return nil*/
 }
 
 //createMessage adds a message to the database.

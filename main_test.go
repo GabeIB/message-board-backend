@@ -4,51 +4,55 @@ package main
 
 import (
     "testing"
-    "log"
     "os"
+//    "os/exec"
 	"net/http"
 	"net/http/httptest"
 	"encoding/json"
 	"bytes"
+//	"time"
+//	"fmt"
 )
 
 var a App
 
 func TestMain(m *testing.M) {
-	a.Initialize("postgres", "postgres", "postgres")
+	//c := exec.Command("sudo", "docker", "run", "-p", "5432:5432", "-e", "POSTGRES_PASSWORD=postgres", "--name", "test_db", "-d", "postgres")
+	//err := c.Run()
+	/*
+	if err != nil{
+		panic(err)
+	}
+		time.Sleep(2 *time.Second)*/
+	a.Initialize("localhost", 5432, "postgres", "postgres", "postgres")
 
-    ensureTableExists()
-    code := m.Run()
-    clearTable()
-    os.Exit(code)
+	ensureTableExists(a.DB)
+	code := m.Run()
+	/*
+	stop := exec.Command("sudo", "docker", "stop", "test_db")
+	rm_container := exec.Command("sudo", "docker", "rm", "test_db")
+
+	fmt.Println("stopping database")
+	if err := stop.Run(); err != nil{
+		fmt.Println("stop failed")
+	}
+	fmt.Println("removing database")
+	if err := rm_container.Run(); err != nil{
+		fmt.Println("removing docker container failed")
+	}*/
+
+	clearTable(a.DB)
+	os.Exit(code)
 }
 
-const tableCreationQuery = `CREATE TABLE IF NOT EXISTS messages
-(
-    id uuid PRIMARY KEY default uuid_generate_v1(),
-    name TEXT NOT NULL,
-    email TEXT NOT NULL,
-    text TEXT NOT NULL,
-    creation_time TIMESTAMPTZ NOT NULL default NOW()
-)`
 
-func ensureTableExists() {
-	if _, err := a.DB.Exec(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp";`); err != nil {
-		log.Fatal(err)
-	}
-	if _, err := a.DB.Exec(tableCreationQuery); err != nil {
-		log.Fatal(err)
-	}
-	if _, err := a.DB.Exec(`CREATE INDEX IF NOT EXISTS timestamp_desc_index ON messages (creation_time DESC)`); err != nil {
-		log.Fatal(err)
-	}
-}
 
+/*
 //TestLoadDataFromCSV tests the loadDataFromCSV function in model.go
 //It does this by loading sample_data.csv into the database and checking that the database isn't empty
 //If /sample_data.csv is not available to the database, this test will fail
 func TestLoadDataFromCSV(t *testing.T) {
-	clearTable()
+	clearTable(a.DB)
 	err := loadDataFromCSV("/sample_data.csv", a.DB)
 	if err != nil {
 		log.Fatal(err)
@@ -64,13 +68,14 @@ func TestLoadDataFromCSV(t *testing.T) {
 		t.Errorf("Messages not loaded into DB")
 	}
 }
+*/
 
 func TestGetMessage(t *testing.T) {
-	clearTable()
+	clearTable(a.DB)
 
 	//create valid message
 	var jsonStr = []byte(`{"name":"Justin", "email": "JB37@gmail.com", "text": "Test Message"}`)
-	req, _ := http.NewRequest("POST", "/message", bytes.NewBuffer(jsonStr))
+	req, _ := http.NewRequest("POST", "/messages", bytes.NewBuffer(jsonStr))
 	req.Header.Set("Content-Type", "application/json")
 
 	response := executeRequest(req)
@@ -79,7 +84,7 @@ func TestGetMessage(t *testing.T) {
 	json.Unmarshal(response.Body.Bytes(), &originalMessage)
 
 	//now make a get request for the same message
-	req, _ = http.NewRequest("GET", "/message/"+originalMessage.ID, nil)
+	req, _ = http.NewRequest("GET", "/messages/"+originalMessage.ID, nil)
 	req.SetBasicAuth("admin","back-challenge")
 	response = executeRequest(req)
 	checkResponseCode(t, http.StatusOK, response.Code)
@@ -106,11 +111,11 @@ func TestGetMessage(t *testing.T) {
 
 //tests that unauthenticated requests cannot recieve info from private API
 func TestAuth(t *testing.T) {
-	clearTable()
+	clearTable(a.DB)
 
 	//create valid message
 	var jsonStr = []byte(`{"name":"Justin", "email": "JB37@gmail.com", "text": "Test Message"}`)
-	req, _ := http.NewRequest("POST", "/message", bytes.NewBuffer(jsonStr))
+	req, _ := http.NewRequest("POST", "/messages", bytes.NewBuffer(jsonStr))
 	req.Header.Set("Content-Type", "application/json")
 
 	response := executeRequest(req)
@@ -119,7 +124,7 @@ func TestAuth(t *testing.T) {
 	json.Unmarshal(response.Body.Bytes(), &originalMessage)
 
 	//now try to retrieve message without authentication
-	req, _ = http.NewRequest("GET", "/message/"+originalMessage.ID, nil)
+	req, _ = http.NewRequest("GET", "/messages/"+originalMessage.ID, nil)
 	response = executeRequest(req)
 	checkResponseCode(t, http.StatusUnauthorized, response.Code)
 
@@ -130,17 +135,17 @@ func TestAuth(t *testing.T) {
 
 	//try to modify a message without auth
 	jsonStr = []byte(`{"name":"New-name", "email": "New-email", "text": "New-text"}`)
-	req3, _ := http.NewRequest("PUT", "/message/"+originalMessage.ID, nil)
+	req3, _ := http.NewRequest("PUT", "/messages/"+originalMessage.ID, nil)
 	var response3 = executeRequest(req3)
 	checkResponseCode(t, http.StatusUnauthorized, response3.Code)
 }
 
 func TestUpdateMessage(t *testing.T) {
-	clearTable()
+	clearTable(a.DB)
 
 	//create valid message
 	var jsonStr = []byte(`{"name":"Justin", "email": "JB37@gmail.com", "text": "Test Message"}`)
-	req, _ := http.NewRequest("POST", "/message", bytes.NewBuffer(jsonStr))
+	req, _ := http.NewRequest("POST", "/messages", bytes.NewBuffer(jsonStr))
 	req.Header.Set("Content-Type", "application/json")
 
 	response := executeRequest(req)
@@ -150,13 +155,13 @@ func TestUpdateMessage(t *testing.T) {
 
 	//try to modify message
 	jsonStr = []byte(`{"name":"New-name", "email": "New-email", "text": "New-text"}`)
-	req, _ = http.NewRequest("PUT", "/message/"+originalMessage.ID, nil)
+	req, _ = http.NewRequest("PUT", "/messages/"+originalMessage.ID, nil)
 	req.SetBasicAuth("admin","back-challenge")
 	response = executeRequest(req)
 	checkResponseCode(t, http.StatusOK, response.Code)
 
 	//now make a get request for the same message
-	req, _ = http.NewRequest("GET", "/message/"+originalMessage.ID, nil)
+	req, _ = http.NewRequest("GET", "/messages/"+originalMessage.ID, nil)
 	req.SetBasicAuth("admin","back-challenge")
 	response = executeRequest(req)
 	checkResponseCode(t, http.StatusOK, response.Code)
@@ -181,12 +186,8 @@ func TestUpdateMessage(t *testing.T) {
 	}
 }
 
-func clearTable() {
-    a.DB.Exec("DELETE FROM messages")
-}
-
 func TestEmptyTable(t *testing.T) {
-	clearTable()
+	clearTable(a.DB)
 
 	req, _ := http.NewRequest("GET", "/messages", nil)
 	req.SetBasicAuth("admin","back-challenge")
@@ -199,11 +200,11 @@ func TestEmptyTable(t *testing.T) {
 }
 
 func TestCreateMessage(t *testing.T) {
-	clearTable()
+	clearTable(a.DB)
 
 	//test creating valid message
 	var jsonStr = []byte(`{"name":"Justin", "email": "JB37@gmail.com", "text": "Test Message"}`)
-	req, _ := http.NewRequest("POST", "/message", bytes.NewBuffer(jsonStr))
+	req, _ := http.NewRequest("POST", "/messages", bytes.NewBuffer(jsonStr))
 	req.Header.Set("Content-Type", "application/json")
 
 	response := executeRequest(req)
@@ -227,11 +228,11 @@ func TestCreateMessage(t *testing.T) {
 }
 
 func TestCreateInvalidMessage(t *testing.T) {
-	clearTable()
+	clearTable(a.DB)
 
 	//test creating invalid message
 	var jsonStr = []byte(`{"name":"Gabe", "text": "Forgot email!"}`)
-	req, _ := http.NewRequest("POST", "/message", bytes.NewBuffer(jsonStr))
+	req, _ := http.NewRequest("POST", "/messages", bytes.NewBuffer(jsonStr))
 	req.Header.Set("Content-Type", "application/json")
 
 	response := executeRequest(req)

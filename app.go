@@ -20,9 +20,9 @@ type App struct {
 }
 
 //Initialize establishes a connection to the database and initializes API endpoints.
-func (a *App) Initialize(dbUname, dbPass, dbname string) {
+func (a *App) Initialize(host string, port int, dbUname, dbPass, dbname string) {
 	connectionString :=
-		fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable", dbUname, dbPass, dbname)
+		fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, dbUname, dbPass, dbname)
 
 	var err error
 	a.DB, err = sql.Open("postgres", connectionString)
@@ -31,7 +31,18 @@ func (a *App) Initialize(dbUname, dbPass, dbname string) {
 	}
 
 	a.Router = mux.NewRouter()
+	log.Print("Initializing Routes")
 	a.initializeRoutes()
+	log.Print("Initializing Database")
+	a.initializeDB()
+}
+
+func (a *App) initializeDB() {
+	ensureTableExists(a.DB)
+	clearTable(a.DB)
+	if err := loadDataFromCSV("/messages.csv", a.DB); err != nil {
+		log.Print("messages could not be loaded from csv\n")
+	}
 }
 
 //Run starts the server on a given port.
@@ -147,7 +158,7 @@ func (a *App) updateMessage(w http.ResponseWriter, r *http.Request) {
 //initializeRoutes adds all API endpoints to the HTTP request multiplexer.
 func (a *App) initializeRoutes() {
 	a.Router.HandleFunc("/messages", a.getMessages).Methods("GET")
-	a.Router.HandleFunc("/message", a.createMessage).Methods("POST")
-	a.Router.HandleFunc("/message/{id:[0-9a-fA-f-]+}", a.getMessage).Methods("GET")
-	a.Router.HandleFunc("/message/{id:[0-9a-fA-f-]+}", a.updateMessage).Methods("PUT")
+	a.Router.HandleFunc("/messages", a.createMessage).Methods("POST")
+	a.Router.HandleFunc("/messages/{id:[0-9a-fA-f-]+}", a.getMessage).Methods("GET")
+	a.Router.HandleFunc("/messages/{id:[0-9a-fA-f-]+}", a.updateMessage).Methods("PUT")
 }
