@@ -1,0 +1,20 @@
+version: "3.8"
+services:
+        database:
+                build:
+                        context: ./database
+                        dockerfile: Dockerfile
+                restart: always
+                env_file:
+                        - env/database_docker.env
+                ports:
+                        - "5432:5432"
+        test:
+                build:
+                        context: ./server
+                        dockerfile: Dockerfile_test
+                env_file: env/server_docker.env
+                depends_on:
+                        - database
+                networks:
+                        - default

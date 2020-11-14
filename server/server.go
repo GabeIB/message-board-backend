@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"net/http"
 	"encoding/json"
+	"time"
 
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
@@ -25,11 +26,18 @@ func (a *App) Initialize(host string, port int, dbUname, dbPass, dbname string) 
 		fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, dbUname, dbPass, dbname)
 
 	var err error
-	retry := 3
+	retry := 5
 	for{
 		a.DB, err = sql.Open("postgres", connectionString)
 		if err != nil {
-			log.Fatal(err)
+			if retry != 0{
+				retry -= 1
+				log.Print("database connection failed. Trying again in 3 seconds...")
+				time.Sleep(3 * time.Second)
+			}else{
+				log.Print("could not connect to database")
+				log.Fatal(err)
+			}
 		} else {
 			break;
 		}
