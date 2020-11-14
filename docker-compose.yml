@@ -2,21 +2,33 @@ version: "3.8"
 services:
         database:
                 build:
-                        context: .
-                        dockerfile: Dockerfile_Database
+                        context: ./database
+                        dockerfile: Dockerfile
                 restart: always
                 env_file:
-                        - .env
+                        - env/database_docker.env
                 ports:
                         - "5432:5432"
-        server:
+        test:
                 build:
-                        context: .
-                        dockerfile: Dockerfile_Server
-                env_file: .env
+                        context: ./server
+                        dockerfile: Dockerfile_test
+                env_file: env/server_docker.env
                 depends_on:
                         - database
                 networks:
                         - default
                 ports:
-                        - "8010:8010"
+                        - "8080:8080"
+        server:
+                build:
+                        context: ./server
+                        dockerfile: Dockerfile
+                env_file: env/server_docker.env
+                depends_on:
+                        - database
+                networks:
+                        - default
+                ports:
+                        - "8080:8080"
+
