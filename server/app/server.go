@@ -60,10 +60,12 @@ func (a *App) initializeDB() error {
 	if err != nil{
 		return err
 	}
+	//wouldn't call this in production code
 	err = clearTable(a.DB)
 	if err != nil{
 		return err
 	}
+	//wouldn't call this in production code either
 	if err := loadDataFromCSV("/messages.csv", a.DB); err != nil {
 		log.Print("messages could not be loaded from csv\n")
 	}
@@ -92,10 +94,11 @@ func respondWithError(w http.ResponseWriter, code int, message string) {
 
 //authenticates checks the username and password of the basic authrization of an http request.
 //In production code, I would have a database of usernames and password hashes.
+//Also, in production code, communication would be through https
 func authenticate(r *http.Request) bool {
 	username, password, ok := r.BasicAuth()
 	if ok {
-		if username == "admin" && password == "back-challenge" {
+		if username == "admin" && password == "back-challenge" { //wouldn't store uname and pass like this
 			return true
 		}
 	}

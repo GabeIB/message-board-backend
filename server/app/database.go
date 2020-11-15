@@ -25,6 +25,7 @@ func ensureTableExists(db *sql.DB) error {
 	if _, err := db.Exec(tableCreationQuery); err != nil {
 		return err
 	}
+	//index on creation_time to make sorting faster on GET /messages API call
 	if _, err := db.Exec(`CREATE INDEX IF NOT EXISTS timestamp_desc_index ON messages (creation_time DESC)`); err != nil {
 		return err
 	}
