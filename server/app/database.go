@@ -47,34 +47,34 @@ func loadDataFromCSV(fileName string, db *sql.DB) error {
 
 	//to load csv from server replace above code with following
 	/*
-	csvfile, err := os.Open(fileName)
-	if err != nil {
-		log.Fatal("Could not open csv file")
-	}
-	defer csvfile.Close()
-	r := csv.NewReader(csvfile)
-	//throw away first line of csv
-	if _, err := r.Read(); err != nil{
-		log.Fatal(err)
-	}
-	for {
-		record, err := r.Read()
-		if err == io.EOF {
-			break
-		}
+		csvfile, err := os.Open(fileName)
 		if err != nil {
+			log.Fatal("Could not open csv file")
+		}
+		defer csvfile.Close()
+		r := csv.NewReader(csvfile)
+		//throw away first line of csv
+		if _, err := r.Read(); err != nil{
 			log.Fatal(err)
 		}
-		id := record[0]
-		name := record[1]
-		email := record[2]
-		text := record[3]
-		creation_time := record[4]
-		query := fmt.Sprintf("INSERT INTO messages(id, name, email, text, creation_time) VALUES('%s', '%s', '%s', '%s', '%s');", id, name, email, text, creation_time)
-		fmt.Println(query)
-		if _, err := db.Exec(query); err != nil {
-			return err
+		for {
+			record, err := r.Read()
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				log.Fatal(err)
+			}
+			id := record[0]
+			name := record[1]
+			email := record[2]
+			text := record[3]
+			creation_time := record[4]
+			query := fmt.Sprintf("INSERT INTO messages(id, name, email, text, creation_time) VALUES('%s', '%s', '%s', '%s', '%s');", id, name, email, text, creation_time)
+			fmt.Println(query)
+			if _, err := db.Exec(query); err != nil {
+				return err
+			}
 		}
-	}
-	return nil*/
+		return nil*/
 }

@@ -3,14 +3,14 @@
 package app
 
 import (
-    "testing"
-    "os"
+	"bytes"
+	"encoding/json"
+	"log"
 	"net/http"
 	"net/http/httptest"
-	"encoding/json"
-	"bytes"
-	"log"
+	"os"
 	"strconv"
+	"testing"
 )
 
 var a App
@@ -35,9 +35,6 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-
-
-
 //TestLoadDataFromCSV tests the loadDataFromCSV function in model.go
 //It does this by loading sample_data.csv into the database and checking that the database isn't empty
 //If /sample_data.csv is not available to the database, this test will fail
@@ -50,7 +47,7 @@ func TestLoadDataFromCSV(t *testing.T) {
 
 	//test database has messages
 	req, _ := http.NewRequest("GET", "/messages", nil)
-	req.SetBasicAuth("admin","back-challenge")
+	req.SetBasicAuth("admin", "back-challenge")
 	response := executeRequest(req)
 	checkResponseCode(t, http.StatusOK, response.Code)
 
@@ -58,7 +55,6 @@ func TestLoadDataFromCSV(t *testing.T) {
 		t.Errorf("Messages not loaded into DB")
 	}
 }
-
 
 func TestGetMessage(t *testing.T) {
 	clearTable(a.DB)
@@ -70,12 +66,12 @@ func TestGetMessage(t *testing.T) {
 
 	response := executeRequest(req)
 	checkResponseCode(t, http.StatusCreated, response.Code)
-	var originalMessage message;
+	var originalMessage message
 	json.Unmarshal(response.Body.Bytes(), &originalMessage)
 
 	//now make a get request for the same message
 	req, _ = http.NewRequest("GET", "/messages/"+originalMessage.ID, nil)
-	req.SetBasicAuth("admin","back-challenge")
+	req.SetBasicAuth("admin", "back-challenge")
 	response = executeRequest(req)
 	checkResponseCode(t, http.StatusOK, response.Code)
 
@@ -110,7 +106,7 @@ func TestAuth(t *testing.T) {
 
 	response := executeRequest(req)
 	checkResponseCode(t, http.StatusCreated, response.Code)
-	var originalMessage message;
+	var originalMessage message
 	json.Unmarshal(response.Body.Bytes(), &originalMessage)
 
 	//now try to retrieve message without authentication
@@ -140,19 +136,19 @@ func TestUpdateMessage(t *testing.T) {
 
 	response := executeRequest(req)
 	checkResponseCode(t, http.StatusCreated, response.Code)
-	var originalMessage message;
+	var originalMessage message
 	json.Unmarshal(response.Body.Bytes(), &originalMessage)
 
 	//try to modify message
 	jsonStr = []byte(`{"text":"New-text"}`)
 	req, _ = http.NewRequest("PUT", "/messages/"+originalMessage.ID, bytes.NewBuffer(jsonStr))
-	req.SetBasicAuth("admin","back-challenge")
+	req.SetBasicAuth("admin", "back-challenge")
 	response = executeRequest(req)
 	checkResponseCode(t, http.StatusOK, response.Code)
 
 	//now make a get request for the same message
 	req, _ = http.NewRequest("GET", "/messages/"+originalMessage.ID, nil)
-	req.SetBasicAuth("admin","back-challenge")
+	req.SetBasicAuth("admin", "back-challenge")
 	response = executeRequest(req)
 	checkResponseCode(t, http.StatusOK, response.Code)
 
@@ -180,7 +176,7 @@ func TestEmptyTable(t *testing.T) {
 	clearTable(a.DB)
 
 	req, _ := http.NewRequest("GET", "/messages", nil)
-	req.SetBasicAuth("admin","back-challenge")
+	req.SetBasicAuth("admin", "back-challenge")
 	response := executeRequest(req)
 	checkResponseCode(t, http.StatusOK, response.Code)
 
@@ -241,4 +237,3 @@ func checkResponseCode(t *testing.T, expected, actual int) {
 		t.Errorf("Expected response code %d. Got %d\n", expected, actual)
 	}
 }
-

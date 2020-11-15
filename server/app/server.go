@@ -3,11 +3,11 @@
 package app
 
 import (
+	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
-	"database/sql"
 	"net/http"
-	"encoding/json"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -28,7 +28,7 @@ func (a *App) Initialize(host string, port int, dbUname, dbPass, dbname string) 
 
 	var err error
 	retry := 5
-	for{
+	for {
 		a.DB, err = sql.Open("postgres", connectionString)
 		if err != nil {
 			log.Fatal(err)
@@ -36,16 +36,16 @@ func (a *App) Initialize(host string, port int, dbUname, dbPass, dbname string) 
 		log.Print("Initializing Database")
 		err = a.initializeDB()
 		if err != nil {
-			if retry != 0{
+			if retry != 0 {
 				retry -= 1
 				log.Print("database connection failed. Trying again in 3 seconds...")
 				time.Sleep(3 * time.Second)
-			}else{
+			} else {
 				log.Print("could not connect to database")
 				log.Fatal(err)
 			}
 		} else {
-			break;
+			break
 		}
 	}
 
@@ -57,12 +57,12 @@ func (a *App) Initialize(host string, port int, dbUname, dbPass, dbname string) 
 //initializeDB ensures a messages table exists in the database, clears the table, and attempts to load a file named messages.csv into the database.
 func (a *App) initializeDB() error {
 	err := ensureTableExists(a.DB)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 	//wouldn't call this in production code
 	err = clearTable(a.DB)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 	//wouldn't call this in production code either
@@ -79,11 +79,11 @@ func (a *App) Run(port string) {
 
 //respondWithJSON responds to an http request with a JSON formatted response.
 func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
-    response, _ := json.Marshal(payload)
+	response, _ := json.Marshal(payload)
 
-    w.Header().Set("Content-Type", "application/json")
-    w.WriteHeader(code)
-    w.Write(response)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	w.Write(response)
 }
 
 //respondWithError responds to an http request with error code and error message.
@@ -107,35 +107,35 @@ func authenticate(r *http.Request) bool {
 
 //getMessage retrieves a specific message identified by id
 func (a *App) getMessage(w http.ResponseWriter, r *http.Request) {
-	if authenticate(r){
+	if authenticate(r) {
 		vars := mux.Vars(r)
 		id := vars["id"]
 		m := message{ID: id}
 		if err := m.getMessage(a.DB); err != nil {
 			switch err {
 			case sql.ErrNoRows:
-			    respondWithError(w, http.StatusNotFound, "Product not found")
+				respondWithError(w, http.StatusNotFound, "Product not found")
 			default:
-			    respondWithError(w, http.StatusInternalServerError, err.Error())
+				respondWithError(w, http.StatusInternalServerError, err.Error())
 			}
 			return
 		}
 		respondWithJSON(w, http.StatusOK, m)
-	}else{
+	} else {
 		respondWithError(w, http.StatusUnauthorized, "Incorrect username or password")
 	}
 }
 
 //getMessages sends all messages to the client in JSON format.
 func (a *App) getMessages(w http.ResponseWriter, r *http.Request) {
-	if authenticate(r){
+	if authenticate(r) {
 		messages, err := getMessages(a.DB)
 		if err != nil {
 			respondWithError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 		respondWithJSON(w, http.StatusOK, messages)
-	}else{
+	} else {
 		respondWithError(w, http.StatusUnauthorized, "Incorrect username or password")
 	}
 }
@@ -164,13 +164,13 @@ func (a *App) createMessage(w http.ResponseWriter, r *http.Request) {
 
 //updateMessage looks up a message by id in database and modifies fields to match arguments
 func (a *App) updateMessage(w http.ResponseWriter, r *http.Request) {
-	if authenticate(r){
+	if authenticate(r) {
 		vars := mux.Vars(r)
 		id := vars["id"]
 
 		var m message
 		decoder := json.NewDecoder(r.Body)
-		if err := decoder.Decode(&m); err != nil{
+		if err := decoder.Decode(&m); err != nil {
 			respondWithError(w, http.StatusBadRequest, "Invalid request payload")
 			return
 		}
@@ -182,14 +182,14 @@ func (a *App) updateMessage(w http.ResponseWriter, r *http.Request) {
 		if err := m.updateMessage(a.DB); err != nil {
 			switch err {
 			case sql.ErrNoRows:
-			    respondWithError(w, http.StatusNotFound, "Product not found")
+				respondWithError(w, http.StatusNotFound, "Product not found")
 			default:
-			    respondWithError(w, http.StatusInternalServerError, err.Error())
+				respondWithError(w, http.StatusInternalServerError, err.Error())
 			}
 			return
 		}
 		respondWithJSON(w, http.StatusOK, m)
-	}else{
+	} else {
 		respondWithError(w, http.StatusUnauthorized, "Incorrect username or password")
 	}
 }

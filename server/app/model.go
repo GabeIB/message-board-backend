@@ -3,23 +3,23 @@
 package app
 
 import (
-    "database/sql"
-    "time"
+	"database/sql"
+	"time"
 )
 
 //message is a structure that holds the information relating to a single post on the message-board.
 type message struct {
-    ID    string     `json:"id"`
-    Name  string  `json:"name"`
-    Email string `json:"email"`
-    Text string `json:"text"`
-    TimeStamp time.Time `json:"creation_time"`
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	Email     string    `json:"email"`
+	Text      string    `json:"text"`
+	TimeStamp time.Time `json:"creation_time"`
 }
 
 //getMessage looks up a message by ID in the database and returns it.
 func (m *message) getMessage(db *sql.DB) error {
 	return db.QueryRow("SELECT name, email, text, creation_time FROM messages WHERE id=$1",
-	        m.ID).Scan(&m.Name, &m.Email, &m.Text, &m.TimeStamp)
+		m.ID).Scan(&m.Name, &m.Email, &m.Text, &m.TimeStamp)
 }
 
 //updateMessage looks up a message by ID in the database and modifies the database fields to match the arguments.
@@ -58,7 +58,7 @@ func getMessages(db *sql.DB) ([]message, error) {
 		if err := rows.Scan(&m.ID, &m.Name, &m.Email, &m.Text, &m.TimeStamp); err != nil {
 			return nil, err
 		}
-		messages = append(messages,m)
+		messages = append(messages, m)
 	}
 	return messages, nil
 }
