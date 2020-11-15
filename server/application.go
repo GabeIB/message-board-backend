@@ -6,17 +6,22 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"github.com/GabeIB/message-board-backend/server/app"
+
 )
 
 func main() {
-	a := App{}
+	a := app.App{}
 	dbHost := os.Getenv("RDS_HOSTNAME")
 	dbPort, err := strconv.Atoi(os.Getenv("RDS_PORT"))
 	if err != nil{
 		dbPort = 5432
 	}
 	dbName := os.Getenv("RDS_DB_NAME")
-	dbUname := os.Getenv("RDS_UNAME")
+	dbUname := os.Getenv("RDS_USERNAME")
+	if dbUname == "" {
+		dbUname = "postgres"
+	}
 	dbPass := os.Getenv("RDS_PASSWORD")
 
 	serverPort := os.Getenv("PORT")

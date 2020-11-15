@@ -1,17 +1,16 @@
 //database.go contains functions for database management.
 
-package main
+package app
 
 import (
-	"log"
 	"database/sql"
 	"fmt"
 )
 
 //ensureTableExists creates the messages table in the database if there isn't already one.
-func ensureTableExists(db *sql.DB) {
+func ensureTableExists(db *sql.DB) error {
 	if _, err := db.Exec(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp";`); err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	const tableCreationQuery = `CREATE TABLE IF NOT EXISTS messages
@@ -24,15 +23,17 @@ func ensureTableExists(db *sql.DB) {
 	)`
 
 	if _, err := db.Exec(tableCreationQuery); err != nil {
-		log.Fatal(err)
+		return err
 	}
 	if _, err := db.Exec(`CREATE INDEX IF NOT EXISTS timestamp_desc_index ON messages (creation_time DESC)`); err != nil {
-		log.Fatal(err)
+		return err
 	}
+	return nil
 }
 
-func clearTable(db *sql.DB) {
-    db.Exec("DELETE FROM messages")
+func clearTable(db *sql.DB) error {
+	_, err := db.Exec("DELETE FROM messages")
+	return err
 }
 
 //loadDataFromCSV loads the specified filepath into the database.

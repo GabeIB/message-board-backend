@@ -1,6 +1,6 @@
 // model.go holds message struct and message methods.
 
-package main
+package app
 
 import (
     "database/sql"
@@ -24,10 +24,9 @@ func (m *message) getMessage(db *sql.DB) error {
 
 //updateMessage looks up a message by ID in the database and modifies the database fields to match the arguments.
 func (m *message) updateMessage(db *sql.DB) error {
-	_, err :=
-		db.Exec("UPDATE messages SET name=$1, email=$2, text=$3 WHERE id=$4",
-			m.Name, m.Email, m.Text, m.ID)
-
+	err :=
+		db.QueryRow("UPDATE messages SET name=$1, email=$2, text=$3 WHERE id=$4 RETURNING creation_time",
+			m.Name, m.Email, m.Text, m.ID).Scan(&m.TimeStamp)
 	return err
 }
 

@@ -4,7 +4,7 @@
 FROM golang
 
 # Copy the local package files to the container's workspace.
-ADD . /go/src/github.com/GabeIB/message-board-backend
+ADD . /go/src/github.com/GabeIB/message-board-backend/server
 
 # Build the outyet command inside the container.
 # (You may fetch or manage dependencies here,
@@ -12,9 +12,6 @@ ADD . /go/src/github.com/GabeIB/message-board-backend
 RUN go get github.com/gorilla/mux
 RUN go get github.com/lib/pq
 
-# Document that the service listens on port 8080.
-EXPOSE 8010
-
-WORKDIR "/go/src/github.com/GabeIB/message-board-backend"
+WORKDIR "/go/src/github.com/GabeIB/message-board-backend/server/app"
 
 CMD ["go", "test", "-v"]

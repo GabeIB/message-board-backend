@@ -1,6 +1,6 @@
 // server.go holds high level logic for the web server.
 
-package main
+package app
 
 import (
 	"fmt"
@@ -24,11 +24,17 @@ type App struct {
 func (a *App) Initialize(host string, port int, dbUname, dbPass, dbname string) {
 	connectionString :=
 		fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, dbUname, dbPass, dbname)
+	log.Print(connectionString)
 
 	var err error
 	retry := 5
 	for{
 		a.DB, err = sql.Open("postgres", connectionString)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Print("Initializing Database")
+		err = a.initializeDB()
 		if err != nil {
 			if retry != 0{
 				retry -= 1
@@ -46,17 +52,23 @@ func (a *App) Initialize(host string, port int, dbUname, dbPass, dbname string) 
 	a.Router = mux.NewRouter()
 	log.Print("Initializing Routes")
 	a.initializeRoutes()
-	log.Print("Initializing Database")
-	a.initializeDB()
+	
 }
 
 //initializeDB ensures a messages table exists in the database, clears the table, and attempts to load a file named messages.csv into the database.
-func (a *App) initializeDB() {
-	ensureTableExists(a.DB)
-	clearTable(a.DB)
+func (a *App) initializeDB() error {
+	err := ensureTableExists(a.DB)
+	if err != nil{
+		return err
+	}
+	err = clearTable(a.DB)
+	if err != nil{
+		return err
+	}
 	if err := loadDataFromCSV("/messages.csv", a.DB); err != nil {
 		log.Print("messages could not be loaded from csv\n")
 	}
+	return nil
 }
 
 //Run starts the server on a given port.
@@ -169,10 +181,15 @@ func (a *App) updateMessage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func home(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Please refer to github.com/GabeIB/message-board-backend for API documentation")
+}
+
 //initializeRoutes adds all API endpoints to the HTTP request multiplexer.
 func (a *App) initializeRoutes() {
 	a.Router.HandleFunc("/messages", a.getMessages).Methods("GET")
 	a.Router.HandleFunc("/messages", a.createMessage).Methods("POST")
 	a.Router.HandleFunc("/messages/{id:[0-9a-fA-f-]+}", a.getMessage).Methods("GET")
 	a.Router.HandleFunc("/messages/{id:[0-9a-fA-f-]+}", a.updateMessage).Methods("PUT")
+	a.Router.HandleFunc("/", home).Methods("GET")
 }

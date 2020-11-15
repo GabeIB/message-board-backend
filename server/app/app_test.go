@@ -1,19 +1,16 @@
 // main_test.go
 
-package main
+package app
 
 import (
     "testing"
     "os"
-//    "os/exec"
 	"net/http"
 	"net/http/httptest"
 	"encoding/json"
 	"bytes"
 	"log"
 	"strconv"
-//	"time"
-//	"fmt"
 )
 
 var a App
@@ -26,7 +23,7 @@ func TestMain(m *testing.M) {
 		dbPort = 5432
 	}
 	dbName := os.Getenv("RDS_DB_NAME")
-	dbUname := os.Getenv("RDS_UNAME")
+	dbUname := os.Getenv("RDS_USERNAME")
 	dbPass := os.Getenv("RDS_PASSWORD")
 
 	a.Initialize(dbHost, dbPort, dbUname, dbPass, dbName)
