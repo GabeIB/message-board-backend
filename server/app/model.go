@@ -25,8 +25,8 @@ func (m *message) getMessage(db *sql.DB) error {
 //updateMessage looks up a message by ID in the database and modifies the database fields to match the arguments.
 func (m *message) updateMessage(db *sql.DB) error {
 	err :=
-		db.QueryRow("UPDATE messages SET name=$1, email=$2, text=$3 WHERE id=$4 RETURNING creation_time",
-			m.Name, m.Email, m.Text, m.ID).Scan(&m.TimeStamp)
+		db.QueryRow("UPDATE messages SET text=$1 WHERE id=$2 RETURNING name, email, creation_time AS package",
+			m.Text, m.ID).Scan(&m.Name, &m.Email, &m.TimeStamp)
 	return err
 }
 

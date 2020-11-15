@@ -35,10 +35,8 @@ def getMessages():
     r = requests.get(url=url+"/messages", auth=(username, password))
     return r
 
-def changeMessage(id, name, email, text):
-    message = {'name' : name,
-               'email' : email,
-               'text' : text}
+def changeMessage(id, text):
+    message = {'text' : text}
     r = requests.put(url=url+"/messages/"+id, auth=(username, password))
     return r
 
@@ -95,7 +93,7 @@ def testUpdateMessage():
         return err
     originalMessage = r.json()
 
-    r = changeMessage(originalMessage['id'], 'updatename', 'updateemail', 'update test text')
+    r = changeMessage(originalMessage['id'], 'update test text')
     err = checkCode(r, requests.codes.ok)
     if err != None:
         return err
@@ -106,11 +104,16 @@ def testUpdateMessage():
     retrievedMessage = r.json()
     if err != None:
         return err
-    fields = ['id', 'name', 'email', 'text', 'creation_time']
-    for x in range(len(fields)):
-        if(updatedMessage[fields[x]] != retrievedMessage[fields[x]]):
-            return "updated message "+fields[x]+"="+updatedMessage[fields[x]]+" but get request retrieved "+retrievedMessage[fields[x]]
- 
+    if(originalMessage['id'] != retrievedMessage['id']):
+        return "updated message id does not match original"
+    if(originalMessage['name'] != retrievedMessage['name']):
+        return "updated message name does not match original"
+    if(originalMessage['email'] != retrievedMessage['email']):
+        return "updated message email does not match original"
+    if(originalMessage['text'] == retrievedMessage['text']):
+        return "message text not updated"
+    if(originalMessage['creation_time'] != retrievedMessage['creation_time']):
+        return "updated message creation time does not match original"
 
 #test authentication
 def testAuthentication():
@@ -130,9 +133,7 @@ def testAuthentication():
     if err != None:
         return err
 
-    message = {'name' : 'unauthorized user',
-               'email' : '1337haxor@badguy.com',
-               'text' : 'hahaha im changing other users messages'}
+    message = {'text' : 'hahaha im changing other users messages'}
     r = requests.put(url=url+"/messages/"+originalMessage['id'])
     err = checkCode(r, requests.codes.unauthorized)
     if err != None:

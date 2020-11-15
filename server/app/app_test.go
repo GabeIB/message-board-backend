@@ -144,7 +144,7 @@ func TestUpdateMessage(t *testing.T) {
 	json.Unmarshal(response.Body.Bytes(), &originalMessage)
 
 	//try to modify message
-	jsonStr = []byte(`{"name":"New-name", "email": "New-email", "text": "New-text"}`)
+	jsonStr = []byte(`{"text": "New-text"}`)
 	req, _ = http.NewRequest("PUT", "/messages/"+originalMessage.ID, nil)
 	req.SetBasicAuth("admin","back-challenge")
 	response = executeRequest(req)
@@ -162,11 +162,11 @@ func TestUpdateMessage(t *testing.T) {
 	if originalMessage.ID != returnedMessage.ID {
 		t.Errorf("Expected message ID to be '%v'. Got '%v'", originalMessage.ID, returnedMessage.ID)
 	}
-	if originalMessage.Name == returnedMessage.Name {
-		t.Errorf("Expected message Name to change but it stayed the same")
+	if originalMessage.Name != returnedMessage.Name {
+		t.Errorf("Expected message Name to be '%v'. Got '%v'", originalMessage.Name, returnedMessage.Name)
 	}
-	if originalMessage.Email == returnedMessage.Email {
-		t.Errorf("Expected message Email to change but it stayed the same")
+	if originalMessage.Email != returnedMessage.Email {
+		t.Errorf("Expected message Email to be '%v'. Got '%v'", originalMessage.Email, returnedMessage.Email)
 	}
 	if originalMessage.Text == returnedMessage.Text {
 		t.Errorf("Expected message Text to change but it stayed the same")
