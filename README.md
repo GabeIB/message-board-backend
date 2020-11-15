@@ -14,11 +14,18 @@ This application requires Docker Compose and Docker
 # API Documentation
 The message board backend exposes a public and a private RESTful API. Both APIs accept JSON-encoded request bodies, and return JSON-encoded responses, using standard HTTP response codes and verbs.
 
+* [Create Message](#create-a-new-message) : `POST /messages`
+
+* [List All Messages](#list-messages-anti-chronologically) : `GET /messages`
+
+* [Get Message By ID](#view-message-by-id) : `GET /messages/{ID}`
+
+* [Update Message Text](#update-message-text) : `PUT /messages/{ID}`
+
 ## Authentication
 HTTP basic authentication is used to validate HTTP requests.
 
 ---
-
 ## Create a new message
 **URL** : `/messages`
 
@@ -61,7 +68,7 @@ Provide name, email, and text of message to be created:
 **Code** : `400 BAD REQUEST`
 
 ---
-## List messages, ordered anti-chronologically
+## List messages anti-chronologically
 **URL** : `/messages`
 
 **Method** : `GET`
