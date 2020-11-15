@@ -52,7 +52,6 @@ func (a *App) Initialize(host string, port int, dbUname, dbPass, dbname string) 
 	a.Router = mux.NewRouter()
 	log.Print("Initializing Routes")
 	a.initializeRoutes()
-	
 }
 
 //initializeDB ensures a messages table exists in the database, clears the table, and attempts to load a file named messages.csv into the database.
@@ -142,8 +141,8 @@ func (a *App) getMessages(w http.ResponseWriter, r *http.Request) {
 //createMessage does not require authentication.
 func (a *App) createMessage(w http.ResponseWriter, r *http.Request) {
 	var m message
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&m); err != nil {
+	d := json.NewDecoder(r.Body)
+	if err := d.Decode(&m); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
@@ -165,7 +164,18 @@ func (a *App) updateMessage(w http.ResponseWriter, r *http.Request) {
 	if authenticate(r){
 		vars := mux.Vars(r)
 		id := vars["id"]
-		m := message{ID: id}
+
+		var m message
+		decoder := json.NewDecoder(r.Body)
+		if err := decoder.Decode(&m); err != nil{
+			respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+			return
+		}
+		if m.Text == "" {
+			respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+			return
+		}
+		m.ID = id
 		if err := m.updateMessage(a.DB); err != nil {
 			switch err {
 			case sql.ErrNoRows:

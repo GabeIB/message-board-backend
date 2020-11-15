@@ -14,4 +14,4 @@ RUN go get github.com/lib/pq
 
 WORKDIR "/go/src/github.com/GabeIB/message-board-backend/server/app"
 
-CMD ["go", "test", "-v"]
+CMD ["go", "test", "-v", "-race"]

@@ -144,8 +144,8 @@ func TestUpdateMessage(t *testing.T) {
 	json.Unmarshal(response.Body.Bytes(), &originalMessage)
 
 	//try to modify message
-	jsonStr = []byte(`{"text": "New-text"}`)
-	req, _ = http.NewRequest("PUT", "/messages/"+originalMessage.ID, nil)
+	jsonStr = []byte(`{"text":"New-text"}`)
+	req, _ = http.NewRequest("PUT", "/messages/"+originalMessage.ID, bytes.NewBuffer(jsonStr))
 	req.SetBasicAuth("admin","back-challenge")
 	response = executeRequest(req)
 	checkResponseCode(t, http.StatusOK, response.Code)

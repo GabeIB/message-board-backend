@@ -37,7 +37,7 @@ def getMessages():
 
 def changeMessage(id, text):
     message = {'text' : text}
-    r = requests.put(url=url+"/messages/"+id, auth=(username, password))
+    r = requests.put(url=url+"/messages/"+id, json=message, auth=(username, password))
     return r
 
 def testPost():
@@ -110,8 +110,8 @@ def testUpdateMessage():
         return "updated message name does not match original"
     if(originalMessage['email'] != retrievedMessage['email']):
         return "updated message email does not match original"
-    if(originalMessage['text'] == retrievedMessage['text']):
-        return "message text not updated"
+    if(retrievedMessage['text'] != 'update test text'):
+        return "message text not updated properly: expected update test text, got "+retrievedMessage['text']
     if(originalMessage['creation_time'] != retrievedMessage['creation_time']):
         return "updated message creation time does not match original"
 
