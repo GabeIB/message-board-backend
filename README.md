@@ -11,6 +11,9 @@ This application requires Docker Compose and Docker
 
 * run integration tests : `python3 test/apitest.py` - By default, tests assume the server is running on http://localhost:8080. To specify a different URL, include it as the first command line argument - ex: `python3 test/apitest.py http://gabrielb.eu-central-1.elasticbeanstalk.com`
 
+## Load CSV on App Start
+The CSV file database/messages.csv is automatically loaded into the database on application startup. If you modify this file, make sure to rebuild the docker images by running `docker-compose rm -f` then `docker-compose build`.
+
 # API Documentation
 The message board backend exposes a public and a private RESTful API. Both APIs accept JSON-encoded request bodies, and return JSON-encoded responses, using standard HTTP response codes and verbs.
 
