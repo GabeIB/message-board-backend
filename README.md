@@ -5,7 +5,7 @@ Back end for a message board application, written in Go with PostgreSQL and Dock
 This application requires Docker Compose and Docker
 
 ## Usage
-* run locally : `docker-compose up` - may require sudo privledges. Starts a docker container running Postgres, listening on port 5432, and a docker container running an HTTP web server listening on port 8080.
+* run locally : `docker-compose up` - may require sudo privileges. Starts a docker container running Postgres, listening on port 5432, and a docker container running an HTTP web server listening on port 8080.
 
 * run unit tests : `docker-compose -f docker-compose.test.yml up` - This will run the tests located in server/app/app_test.go
 
